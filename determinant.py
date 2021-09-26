@@ -20,20 +20,21 @@ def kernel(asm):
         mov(ra[i], vpm)
     
     for j in range(16):
-        # j行目の左端の要素を抽出
-        rotate(r0, ra[j], -j)
-        mov(broadcast, r0) # ->r5
-        mov(sfu_recip, r5) # ->r4
+        # j行目j列の要素を抽出
+        nop() # rotate()の準備
+        rotate(r0, ra[j], -j) # j行目j列の要素をレジスタの左へ
+        mov(broadcast, r0) # j行目j列の要素をr5にブロードキャスト
+        mov(sfu_recip, r5) # j行目j列の要素の逆数を計算->r4
         nop()
         nop()
-        fmul(r2, r4, ra[j])
+        fmul(r2, r4, ra[j]) # j行目を、j行目j列の要素で割る
         for i in range(j+1, 16):
             # i行目の左端の要素を抽出
-            rotate(r0, ra[i], -j)
-            mov(broadcast, r0) # -> r5
-            fmul(r3, r2, r5)
-            fsub(r0, ra[i], r3)
-            mov(ra[i], r0)
+            rotate(r0, ra[i], -j) # i行目j列目の要素をレジスタの左へ
+            mov(broadcast, r0) # i行目j列目の要素をr5にブロードキャスト
+            fmul(r3, r2, r5) # i行目に、引く数を計算
+            fsub(r0, ra[i], r3) # i行目の計算
+            mov(ra[i], r0) # 計算した値を元のraレジスタに戻す
     
     for i in range(16):
         mov(vpm,  ra[i])
